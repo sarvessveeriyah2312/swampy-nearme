@@ -5,7 +5,8 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { Toaster } from '@/components/ui/toaster';
 import Script from 'next/script';
-import { AnalyticsTracker } from '@/components/AnalyticsTracker'; // 👈 create this below
+import { Suspense } from 'react';
+import { AnalyticsTracker } from '@/components/AnalyticsTracker';
 
 const poppins = Poppins({
   weight: ['400', '600', '700'],
@@ -14,7 +15,8 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: 'Swamiye NearMe - Discover Ayyappa Poojas Around You',
-  description: 'Find, share and join nearby Ayyappa Poojas and Bhajans in your community',
+  description:
+    'Find, share and join nearby Ayyappa Poojas and Bhajans in your community',
 };
 
 export default function RootLayout({
@@ -22,12 +24,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
+  const GA_ID = process.env.NEXT_PUBLIC_GA_ID ?? '';
 
   return (
     <html lang="en">
       <head>
-        {/* ✅ Google Analytics Script */}
+        {/* ✅ Google Analytics Script (loads after hydration) */}
         {GA_ID && (
           <>
             <Script
@@ -49,8 +51,12 @@ export default function RootLayout({
       </head>
 
       <body className={`${poppins.className} bg-amber-50/20`}>
-        {/* ✅ Auto page view tracker */}
-        {GA_ID && <AnalyticsTracker />}
+        {/* ✅ Suspense wrapper fixes Next 16 build issue */}
+        {GA_ID && (
+          <Suspense fallback={null}>
+            <AnalyticsTracker />
+          </Suspense>
+        )}
 
         <div className="flex flex-col min-h-screen">
           <Navbar />
