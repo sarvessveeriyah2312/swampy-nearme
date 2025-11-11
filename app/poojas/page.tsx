@@ -14,7 +14,7 @@ import { FooterNote } from './sections/FooterNote';
 
 export default function PoojasPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchByLocation, setSearchByLocation] = useState(''); // ✅ added
+  const [searchByLocation, setSearchByLocation] = useState('');
   const [loading, setLoading] = useState(true);
   const [filteredPoojas, setFilteredPoojas] = useState<any[]>([]);
   const [activeFilter, setActiveFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
@@ -28,7 +28,6 @@ export default function PoojasPage() {
   useEffect(() => {
     let baseFiltered = filterPoojas(poojas, searchQuery, activeFilter);
 
-    // 🌍 Location-based filter
     if (searchByLocation.trim()) {
       baseFiltered = baseFiltered.filter((p) =>
         p.location_address?.toLowerCase().includes(searchByLocation.toLowerCase())
@@ -51,53 +50,59 @@ export default function PoojasPage() {
   const upcomingCount = getUpcomingPoojasCount(poojas);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50/30 via-white to-amber-50/20 py-8 px-4">
-      <div className="container mx-auto">
+    <div className="min-h-screen bg-gradient-to-b from-amber-50/30 via-white to-amber-50/20 py-6 sm:py-8 px-3 sm:px-4">
+      <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
+          className="space-y-6 sm:space-y-8"
         >
           {/* 📊 Header Stats */}
           <StatsSection count={upcomingCount} />
 
           {/* 🔍 Filters */}
-          <FiltersSection
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            activeFilter={activeFilter}
-            setActiveFilter={setActiveFilter}
-            userLocation={userLocation}
-            setSearchByLocation={setSearchByLocation} // ✅ now passed down
-          />
+          <div className="px-2 sm:px-0">
+            <FiltersSection
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              activeFilter={activeFilter}
+              setActiveFilter={setActiveFilter}
+              userLocation={userLocation}
+              setSearchByLocation={setSearchByLocation}
+            />
+          </div>
 
-          {/* 🕉️ Optional Area Banner */}
+          {/* 🌍 Area Tag */}
           {searchByLocation && (
-            <div className="flex justify-center mb-8">
-              <div className="bg-amber-100 border border-amber-300 px-6 py-2 rounded-full text-amber-800 font-medium shadow-sm">
-                Showing poojas near <span className="font-semibold">{searchByLocation}</span> 
+            <div className="flex justify-center mb-6 sm:mb-8">
+              <div className="bg-amber-100 border border-amber-300 px-4 sm:px-6 py-2 rounded-full text-amber-800 text-sm sm:text-base font-medium shadow-sm text-center">
+                Showing poojas near{' '}
+                <span className="font-semibold">{searchByLocation}</span>
               </div>
             </div>
           )}
 
-          {/* 📦 Pooja Cards or Loading/Empty States */}
+          {/* 📦 Pooja Cards */}
           {loading ? (
-            <div className="text-center py-16">
+            <div className="text-center py-16 sm:py-20">
               <div className="inline-flex flex-col items-center gap-4">
                 <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin"></div>
-                <p className="text-amber-700 font-medium">Loading sacred poojas...</p>
+                <p className="text-amber-700 font-medium text-base sm:text-lg">
+                  Loading sacred poojas...
+                </p>
               </div>
             </div>
           ) : filteredPoojas.length === 0 ? (
             <EmptyState searchQuery={searchQuery} activeFilter={activeFilter} />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {poojasWithDistance.map((pooja, index) => (
                 <motion.div
                   key={pooja.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
                 >
                   <PoojaCard pooja={pooja} distance={pooja.distance} />
                 </motion.div>
@@ -106,7 +111,9 @@ export default function PoojasPage() {
           )}
 
           {/* 🌺 Footer */}
-          <FooterNote />
+          <div className="pt-8 sm:pt-12">
+            <FooterNote />
+          </div>
         </motion.div>
       </div>
     </div>

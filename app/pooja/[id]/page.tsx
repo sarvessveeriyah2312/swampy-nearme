@@ -19,11 +19,14 @@ export default function PoojaDetailPage() {
   const { pooja, loading } = usePoojaDetail();
   const { toast } = useToast();
 
+  // ✅ Loading state with smooth center animation
   if (loading)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-amber-50 via-white to-amber-100">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-amber-50 via-white to-amber-100 px-6">
         <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin"></div>
-        <p className="text-amber-700 mt-4 font-medium">Loading sacred pooja details...</p>
+        <p className="text-amber-700 mt-5 font-medium text-base sm:text-lg text-center">
+          Loading sacred pooja details...
+        </p>
       </div>
     );
 
@@ -31,28 +34,31 @@ export default function PoojaDetailPage() {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-amber-50 via-white to-amber-50/50 flex flex-col">
-      {/* Main content wrapper */}
-      <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-8">
+      {/* Wrapper */}
+      <div className="flex-grow w-full max-w-5xl mx-auto px-3 sm:px-6 md:px-8 py-4 sm:py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
+          className="space-y-4 sm:space-y-6"
         >
           {/* Back Navigation */}
-          <div className="mb-4 sm:mb-6">
+          <div className="mb-3 sm:mb-5">
             <Link href="/poojas">
               <Button
                 variant="ghost"
-                className="text-amber-700 hover:text-amber-900 hover:bg-amber-50 rounded-xl flex items-center"
+                className="text-amber-700 hover:text-amber-900 hover:bg-amber-50 rounded-xl flex items-center px-3 py-2 sm:px-4 sm:py-2"
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                <span className="text-sm sm:text-base font-medium">Back to Sacred Gatherings</span>
+                <ArrowLeft className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="text-sm sm:text-base font-medium">
+                  Back to Sacred Gatherings
+                </span>
               </Button>
             </Link>
           </div>
 
           {/* Main Card */}
-          <Card className="border-2 border-amber-200 shadow-lg md:shadow-2xl rounded-3xl overflow-hidden">
+          <Card className="border-2 border-amber-200 shadow-lg md:shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden">
             <PoojaHeader pooja={pooja} />
 
             <CardContent className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
@@ -61,19 +67,30 @@ export default function PoojaDetailPage() {
                 <PoojaDescription description={pooja.description} />
               )}
 
-              {/* Responsive grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                <PoojaVenue pooja={pooja} />
-                <PoojaActions pooja={pooja} toast={toast} />
+              {/* ✅ Responsive grid layout */}
+              <div className="grid grid-cols-1 gap-5 sm:gap-6 md:grid-cols-2">
+                <div className="order-2 md:order-1">
+                  <PoojaVenue pooja={pooja} />
+                </div>
+                <div className="order-1 md:order-2">
+                  <PoojaActions pooja={pooja} toast={toast} />
+                </div>
               </div>
 
-              <PoojaButtons pooja={pooja} toast={toast} params={{ id: pooja.id }} />
+              {/* Buttons - Full width on mobile */}
+              <div className="flex flex-col gap-3 sm:gap-4">
+                <PoojaButtons
+                  pooja={pooja}
+                  toast={toast}
+                  params={{ id: pooja.id }}
+                />
+              </div>
             </CardContent>
           </Card>
         </motion.div>
       </div>
 
-      {/* Footer - Always sticks to bottom */}
+      {/* Footer */}
       <footer className="mt-auto w-full">
         <PoojaFooter />
       </footer>
