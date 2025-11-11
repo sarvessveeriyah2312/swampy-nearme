@@ -2,47 +2,54 @@
 
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Bell, Share2 } from 'lucide-react';
+import { Share2 } from 'lucide-react';
 
 export default function CommunitySection() {
-const handleShare = async () => {
-  const shareData = {
-    title: 'Swamiye NearMe',
-    text: '🙏 Join the Swamiye NearMe community — discover nearby poojas and unite with Ayyappa devotees!',
-    url: typeof window !== 'undefined' ? window.location.href : 'https://swamiyenearme.com',
-  };
+  const handleShare = async () => {
+    const shareData = {
+      title: 'Swamiye NearMe',
+      text: '🙏 Join the Swamiye NearMe community — discover nearby poojas and unite with Ayyappa devotees!',
+      url:
+        typeof window !== 'undefined'
+          ? window.location.href
+          : 'https://swamiyenearme.com',
+    };
 
-  try {
-    // ✅ Case 1: Use native Web Share API
-    if (navigator.share) {
-      await navigator.share(shareData);
-      return;
-    }
+    try {
+      // ✅ 1. Native Web Share API
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
 
-    // ✅ Case 2: Fallback to Clipboard API if available
-    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-      await navigator.clipboard.writeText(shareData.url);
+      // ✅ 2. Clipboard API fallback
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(shareData.url);
+        alert('🔗 Link copied to clipboard!');
+        return;
+      }
+
+      // ✅ 3. Manual input fallback
+      const tempInput = document.createElement('input');
+      tempInput.value = shareData.url;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
       alert('🔗 Link copied to clipboard!');
-      return;
+    } catch (err: any) {
+      // 🧘 Ignore user cancelation — normal behavior
+      if (err.name === 'AbortError') {
+        console.log('User canceled the share action.');
+        return;
+      }
+      console.error('Error sharing:', err);
     }
-
-    // ✅ Case 3: Final fallback using a temporary input element
-    const tempInput = document.createElement('input');
-    tempInput.value = shareData.url;
-    document.body.appendChild(tempInput);
-    tempInput.select();
-    document.execCommand('copy');
-    document.body.removeChild(tempInput);
-    alert('🔗 Link copied to clipboard!');
-  } catch (err) {
-    console.error('Error sharing:', err);
-  }
-};
-
+  };
 
   return (
     <section className="relative py-20 sm:py-24 px-4 sm:px-6 bg-gradient-to-br from-amber-900 via-orange-800 to-amber-700 text-white overflow-hidden">
-      {/* Background Orbs */}
+      {/* Decorative Background Orbs */}
       <div className="absolute top-10 left-10 w-32 sm:w-40 h-32 sm:h-40 bg-yellow-400/20 rounded-full blur-3xl animate-pulse" />
       <div className="absolute bottom-10 right-10 w-52 sm:w-64 h-52 sm:h-64 bg-orange-400/10 rounded-full blur-3xl animate-pulse" />
 
@@ -54,7 +61,7 @@ const handleShare = async () => {
           transition={{ duration: 0.8 }}
           className="grid grid-cols-1 md:grid-cols-2 items-center gap-10 sm:gap-12"
         >
-          {/* Left Text Section */}
+          {/* ✨ Left Text Section */}
           <div className="text-center md:text-left space-y-6 sm:space-y-8">
             <div className="inline-flex items-center bg-yellow-300/20 text-yellow-100 px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium tracking-wide mx-auto md:mx-0">
               🙏 Join the Divine Collective
@@ -71,20 +78,12 @@ const handleShare = async () => {
               Receive updates on poojas, join bhajan gatherings, and share sacred energy wherever you are.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center md:justify-start pt-2 sm:pt-4">
+            {/* 🟡 Single Yellow Share Button */}
+            <div className="flex justify-center md:justify-start pt-2 sm:pt-4">
               <Button
                 size="lg"
-                className="bg-yellow-400 text-amber-900 hover:bg-yellow-300 font-semibold shadow-lg hover:shadow-2xl transition-all duration-300 w-full sm:w-auto"
-              >
-                <Bell className="mr-2 h-5 w-5" />
-                Enable Pooja Alerts
-              </Button>
-
-              <Button
-                size="lg"
-                variant="outline"
                 onClick={handleShare}
-                className="border-yellow-400 text-yellow-300 hover:bg-yellow-300/10 font-semibold backdrop-blur-md hover:shadow-lg transition-all duration-300 w-full sm:w-auto"
+                className="bg-yellow-400 hover:bg-yellow-300 text-amber-900 font-semibold shadow-lg hover:shadow-2xl transition-all duration-300 w-full sm:w-auto"
               >
                 <Share2 className="mr-2 h-5 w-5" />
                 Share with Devotees
@@ -92,7 +91,7 @@ const handleShare = async () => {
             </div>
           </div>
 
-          {/* Right Spiritual Quote Card */}
+          {/* 🕯️ Right Spiritual Quote Card */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
@@ -121,7 +120,7 @@ const handleShare = async () => {
           </motion.div>
         </motion.div>
 
-        {/* Bottom Divider Aura */}
+        {/* Footer Quote */}
         <div className="mt-16 sm:mt-20 border-t border-amber-600/30 pt-6 sm:pt-8 text-center">
           <p className="text-yellow-200 text-xs sm:text-sm md:text-base tracking-wide opacity-90 px-4 sm:px-0">
             May the chants of “Swamiye Saranam Ayyappa” resonate in every heart 💫

@@ -11,6 +11,7 @@ import { getCoordinatesFromAddress, calculateDistance } from '@/utils/locationUt
 
 interface PoojaCardProps {
   pooja: Pooja;
+  distance?: number;
 }
 
 export function PoojaCard({ pooja }: PoojaCardProps) {
