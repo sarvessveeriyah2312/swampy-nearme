@@ -49,16 +49,12 @@ export async function getCoordinatesFromAddress(address: string) {
         const lat = parseFloat(data[0].lat);
         const lng = parseFloat(data[0].lon);
         geocodeCache[cacheKey] = { lat, lng };
-
-        console.log('✅ Dynamic geocode success for:', query, lat, lng);
         return { lat, lng };
       }
     }
 
-    console.warn('❌ No geocoding results for:', address);
     return null;
-  } catch (err) {
-    console.error('Geocoding error:', err);
+  } catch {
     return null;
   }
 }
@@ -108,21 +104,15 @@ export async function calculateDistance(
     const data = await res.json();
 
     if (data.distance_km) {
-      return data.distance_km; // ✅ actual driving distance from ORS
+      return data.distance_km; // ✅ actual driving distance
     }
 
-    // fallback: Haversine
     const fallback = calculateHaversineDistance(lat1, lon1, lat2, lon2);
-    if (fallback !== null) {
-      console.warn('Falling back to Haversine distance.');
-      return fallback;
-    }
+    if (fallback !== null) return fallback;
 
     return null;
-  } catch (err) {
-    console.error('Distance fetch failed:', err);
+  } catch {
     const fallback = calculateHaversineDistance(lat1, lon1, lat2, lon2);
     return fallback;
   }
 }
-
