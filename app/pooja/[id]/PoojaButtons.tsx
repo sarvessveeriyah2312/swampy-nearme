@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Share2, Bell } from 'lucide-react';
 
 export const PoojaButtons = ({ pooja, toast, params }: any) => {
+  // --- SHARE HANDLER ---
   const handleShare = async () => {
     const shareData = {
       title: pooja.title,
@@ -10,8 +11,9 @@ export const PoojaButtons = ({ pooja, toast, params }: any) => {
       url: window.location.href,
     };
 
-    if (navigator.share) await navigator.share(shareData);
-    else {
+    if (navigator.share) {
+      await navigator.share(shareData);
+    } else {
       await navigator.clipboard.writeText(window.location.href);
       toast({
         title: 'Link copied to clipboard',
@@ -20,14 +22,45 @@ export const PoojaButtons = ({ pooja, toast, params }: any) => {
     }
   };
 
-  const handleEnableReminder = () => {
-    if ('Notification' in window)
-      Notification.requestPermission().then((perm) => {
-        if (perm === 'granted') {
-          toast({ title: 'Reminder enabled 🙏', description: 'You will receive notifications' });
-          localStorage.setItem(`reminder-${params.id}`, 'true');
-        }
+  // --- REMINDER HANDLER ---
+  const handleEnableReminder = async () => {
+    if (!('Notification' in window)) {
+      toast({
+        title: 'Not supported',
+        description: 'Your browser does not support notifications',
       });
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      // Save reminder state
+      localStorage.setItem(`reminder-${params.id}`, 'true');
+
+      // Optionally schedule a simple reminder (e.g., 5 minutes before event)
+      const poojaDate = new Date(pooja.dateTime); // ensure pooja.dateTime is a valid ISO string
+      const now = new Date();
+      const timeUntilReminder = poojaDate.getTime() - now.getTime() - 5 * 60 * 1000; // 5 mins before
+
+      if (timeUntilReminder > 0) {
+        setTimeout(() => {
+          new Notification(`⏰ Reminder: ${pooja.title}`, {
+            body: `Your pooja "${pooja.title}" will begin soon.`,
+            icon: '/temple-icon.png', // optional custom icon
+          });
+        }, timeUntilReminder);
+      }
+
+      toast({
+        title: 'Reminder enabled 🙏',
+        description: 'You will receive a notification before the pooja begins',
+      });
+    } else {
+      toast({
+        title: 'Permission denied',
+        description: 'Notifications were not enabled for this browser',
+      });
+    }
   };
 
   return (
