@@ -26,30 +26,30 @@ export function LocationSection({ formData, handleChange, handleGetLocation }: a
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="location_lat" className="text-sm text-gray-600">
-            Latitude
+            Latitude (optional)
           </Label>
           <Input
             id="location_lat"
             name="location_lat"
             type="number"
             step="any"
+            placeholder="Optional"
             value={formData.location_lat || ''}
             onChange={handleChange}
-            required
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="location_lng" className="text-sm text-gray-600">
-            Longitude
+            Longitude (optional)
           </Label>
           <Input
             id="location_lng"
             name="location_lng"
             type="number"
             step="any"
+            placeholder="Optional"
             value={formData.location_lng || ''}
             onChange={handleChange}
-            required
           />
         </div>
       </div>

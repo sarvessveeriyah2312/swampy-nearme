@@ -5,15 +5,36 @@ import { format } from 'date-fns';
 
 export const PoojaActions = ({ pooja, toast }: any) => {
   const handleGetDirections = () => {
-    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${pooja.location_lat},${pooja.location_lng}`;
+    const hasCoordinates =
+      pooja.location_lat &&
+      pooja.location_lng &&
+      !isNaN(Number(pooja.location_lat)) &&
+      !isNaN(Number(pooja.location_lng));
+
+    let googleMapsUrl = '';
+
+    if (hasCoordinates) {
+      googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${pooja.location_lat},${pooja.location_lng}`;
+    } else if (pooja.location_address) {
+      googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+        pooja.location_address
+      )}`;
+    } else {
+      toast({
+        title: 'Missing location',
+        description: 'No address or coordinates found for this pooja.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     window.open(googleMapsUrl, '_blank');
   };
 
   const handleAddToCalendar = () => {
     const eventDate = new Date(pooja.pooja_date);
-    const endDate = new Date(eventDate.getTime() + 2 * 60 * 60 * 1000); // +2 hrs duration
+    const endDate = new Date(eventDate.getTime() + 2 * 60 * 60 * 1000); // +2 hrs
 
-    // 1-day reminder alert (24 hours before start)
     const icsContent = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
@@ -26,10 +47,10 @@ export const PoojaActions = ({ pooja, toast }: any) => {
       `DTSTART:${eventDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
       `DTEND:${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
       `SUMMARY:${pooja.title}`,
-      `DESCRIPTION:${pooja.description}`,
-      `LOCATION:${pooja.location_address}`,
+      `DESCRIPTION:${pooja.description || ''}`,
+      `LOCATION:${pooja.location_address || 'Unknown location'}`,
       'BEGIN:VALARM',
-      'TRIGGER:-P1D', // 1 day before event
+      'TRIGGER:-P1D', // 1 day before
       'ACTION:DISPLAY',
       'DESCRIPTION:Reminder - Your sacred pooja starts tomorrow 🙏',
       'END:VALARM',
@@ -49,7 +70,7 @@ export const PoojaActions = ({ pooja, toast }: any) => {
 
     toast({
       title: 'Calendar event created 📅',
-      description: 'An alert 1 day before the pooja will be set in your calendar',
+      description: 'A 1-day reminder has been added to your calendar',
     });
   };
 
@@ -59,6 +80,7 @@ export const PoojaActions = ({ pooja, toast }: any) => {
         <Clock className="h-5 w-5 text-amber-600" />
         Quick Actions
       </h3>
+
       <div className="space-y-3">
         <Button
           onClick={handleGetDirections}
@@ -67,6 +89,7 @@ export const PoojaActions = ({ pooja, toast }: any) => {
           <Navigation className="mr-3 h-5 w-5" />
           Get Directions
         </Button>
+
         <Button
           onClick={handleAddToCalendar}
           variant="outline"

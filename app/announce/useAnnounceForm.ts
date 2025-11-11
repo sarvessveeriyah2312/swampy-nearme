@@ -65,17 +65,21 @@ export const useAnnounceForm = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data, error } = await supabase.from('poojas').insert([
-        {
-          title: formData.title,
-          description: formData.description,
-          pooja_date: new Date(formData.pooja_date).toISOString(),
-          location_address: formData.location_address,
-          location_lat: formData.location_lat,
-          location_lng: formData.location_lng,
-          status: 'approved',
-        },
-      ]).select();
+      const { data, error } = await supabase
+        .from('poojas')
+        .insert([
+          {
+            title: formData.title,
+            description: formData.description,
+            pooja_date: new Date(formData.pooja_date).toISOString(),
+            location_address: formData.location_address,
+            // Only include lat/lng if they exist
+            location_lat: formData.location_lat || null,
+            location_lng: formData.location_lng || null,
+            status: 'approved',
+          },
+        ])
+        .select();
 
       if (error) throw error;
 
