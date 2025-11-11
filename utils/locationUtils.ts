@@ -100,17 +100,15 @@ export async function calculateDistance(
   lon2: number
 ): Promise<number | null> {
   try {
-    // ✅ Call your server-side proxy instead of Google directly
     const url = `/api/distance?origins=${lat1},${lon1}&destinations=${lat2},${lon2}`;
     const res = await fetch(url);
     const data = await res.json();
 
-    if (data.rows?.[0]?.elements?.[0]?.distance?.value) {
-      const meters = data.rows[0].elements[0].distance.value;
-      return meters / 1000; // convert to km
+    if (data.distance_km) {
+      return data.distance_km; // ✅ actual driving distance from ORS
     }
 
-    // Fallback: Haversine
+    // fallback: Haversine
     const fallback = calculateHaversineDistance(lat1, lon1, lat2, lon2);
     if (fallback !== null) {
       console.warn('Falling back to Haversine distance.');
@@ -124,3 +122,4 @@ export async function calculateDistance(
     return fallback;
   }
 }
+
