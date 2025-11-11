@@ -27,14 +27,13 @@ export function PoojaCard({ pooja }: PoojaCardProps) {
   // ✅ 1. Get user's current location
   useEffect(() => {
     if (!navigator.geolocation) return;
-
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setUserLat(pos.coords.latitude);
         setUserLng(pos.coords.longitude);
       },
       () => {
-        console.warn('Unable to fetch user location');
+        // ignored silently
       }
     );
   }, []);
@@ -78,7 +77,7 @@ export function PoojaCard({ pooja }: PoojaCardProps) {
   }, [userLat, userLng, pooja]);
 
   return (
-    <Card className="hover:shadow-xl transition-all duration-300 border-2 border-amber-100 hover:border-amber-300 rounded-2xl overflow-hidden">
+    <Card className="hover:shadow-xl transition-all duration-300 border-2 border-amber-100 hover:border-amber-300 rounded-2xl overflow-hidden min-h-[340px] flex flex-col justify-between">
       {/* Header */}
       <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50">
         <CardTitle className="text-xl text-amber-900 font-semibold">
@@ -87,43 +86,48 @@ export function PoojaCard({ pooja }: PoojaCardProps) {
       </CardHeader>
 
       {/* Content */}
-      <CardContent className="pt-4 space-y-3">
-        {/* Date */}
-        <div className="flex items-start gap-2 text-sm text-gray-700">
-          <Calendar className="h-4 w-4 text-amber-600 mt-0.5" />
-          <span>{formattedDate}</span>
-        </div>
-
-        {/* Address */}
-        <div className="flex items-start gap-2 text-sm text-gray-700">
-          <MapPin className="h-4 w-4 text-amber-600 mt-0.5" />
-          <span>{pooja.location_address || 'Location not provided'}</span>
-        </div>
-
-        {/* ✅ Distance */}
-        {distance !== null && !isNaN(distance) && (
-          <div className="flex items-center gap-2 text-sm text-gray-700 font-medium">
-            {distanceType === 'driving' ? (
-              <>
-                <Route className="h-4 w-4 text-amber-600" />
-                <span>Driving distance: {distance.toFixed(1)} km</span>
-              </>
-            ) : (
-              <>
-                <Navigation className="h-4 w-4 text-amber-600" />
-                <span>Approx. {distance.toFixed(1)} km away</span>
-              </>
-            )}
+      <CardContent className="flex flex-col justify-between flex-grow pt-4 space-y-4 sm:space-y-3">
+        <div className="space-y-3">
+          {/* Date */}
+          <div className="flex items-start gap-2 text-sm text-gray-700">
+            <Calendar className="h-4 w-4 text-amber-600 mt-0.5" />
+            <span>{formattedDate}</span>
           </div>
-        )}
 
-        {/* Description */}
-        <p className="text-sm text-gray-600 line-clamp-2">
-          {pooja.description || 'No description provided.'}
-        </p>
+          {/* Address */}
+          <div className="flex items-start gap-2 text-sm text-gray-700">
+            <MapPin className="h-4 w-4 text-amber-600 mt-0.5" />
+            <span>{pooja.location_address || 'Location not provided'}</span>
+          </div>
 
-        {/* ✅ Fixed View Button */}
-        <Button asChild className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg mt-4">
+          {/* ✅ Distance (moved up for visibility) */}
+          {distance !== null && !isNaN(distance) && (
+            <div className="flex items-center gap-2 text-sm text-gray-700 font-medium flex-wrap">
+              {distanceType === 'driving' ? (
+                <>
+                  <Route className="h-4 w-4 text-amber-600" />
+                  <span>Driving: {distance.toFixed(1)} km</span>
+                </>
+              ) : (
+                <>
+                  <Navigation className="h-4 w-4 text-amber-600" />
+                  <span>Approx. {distance.toFixed(1)} km away</span>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Description */}
+          <p className="text-sm text-gray-600 line-clamp-3 sm:line-clamp-2">
+            {pooja.description || 'No description provided.'}
+          </p>
+        </div>
+
+        {/* ✅ View Details Button */}
+        <Button
+          asChild
+          className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg mt-3 sm:mt-4"
+        >
           <Link href={`/pooja/${pooja.id}`}>
             <Eye className="h-4 w-4 mr-2" />
             View Details
