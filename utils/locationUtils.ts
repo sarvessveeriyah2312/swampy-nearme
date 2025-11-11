@@ -6,7 +6,6 @@
  */
 export async function getCoordinatesFromAddress(address: string) {
   try {
-    // Append country context for better accuracy
     const query = `${address}, Malaysia`;
 
     const res = await fetch(
@@ -27,7 +26,7 @@ export async function getCoordinatesFromAddress(address: string) {
       return { lat, lng };
     }
 
-    // ✅ Fallback: try simplified address (just area + city)
+    // ✅ Fallback: simplified query (area + city only)
     const shortQuery = address
       .split(',')
       .slice(-2)
@@ -62,34 +61,66 @@ export async function getCoordinatesFromAddress(address: string) {
 }
 
 /**
- * Compute distance between two coordinates in kilometers using the Haversine formula.
+ * Compute straight-line (Haversine) distance between two coordinates in kilometers.
  */
-export function calculateDistance(
+export function calculateHaversineDistance(
   lat1: number,
   lon1: number,
   lat2: number,
   lon2: number
-) {
-  // ✅ Validate coordinates
+): number | null {
   if (
     [lat1, lon1, lat2, lon2].some(
       (v) => typeof v !== 'number' || isNaN(v) || v === 0
     )
   ) {
-    return null; // invalid coordinates
+    return null;
   }
 
-  const R = 6371; // Earth's radius in km
+  const R = 6371; // km
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
-
   const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.sin(dLat / 2) ** 2 +
     Math.cos((lat1 * Math.PI) / 180) *
       Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-
+      Math.sin(dLon / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c; // distance in km
+  return R * c;
+}
+
+/**
+ * Fetch real driving distance (km) using your backend proxy API route.
+ * Falls back to Haversine if the API fails.
+ */
+export async function calculateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): Promise<number | null> {
+  try {
+    // ✅ Call your server-side proxy instead of Google directly
+    const url = `/api/distance?origins=${lat1},${lon1}&destinations=${lat2},${lon2}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.rows?.[0]?.elements?.[0]?.distance?.value) {
+      const meters = data.rows[0].elements[0].distance.value;
+      return meters / 1000; // convert to km
+    }
+
+    // Fallback: Haversine
+    const fallback = calculateHaversineDistance(lat1, lon1, lat2, lon2);
+    if (fallback !== null) {
+      console.warn('Falling back to Haversine distance.');
+      return fallback;
+    }
+
+    return null;
+  } catch (err) {
+    console.error('Distance fetch failed:', err);
+    const fallback = calculateHaversineDistance(lat1, lon1, lat2, lon2);
+    return fallback;
+  }
 }

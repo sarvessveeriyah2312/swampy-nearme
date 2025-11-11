@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, MapPin, Eye } from 'lucide-react';
+import { Calendar, MapPin, Eye, Navigation, Route } from 'lucide-react';
 import { Pooja } from '@/lib/supabase';
 import { format } from 'date-fns';
 import Link from 'next/link';
@@ -11,16 +11,16 @@ import { getCoordinatesFromAddress, calculateDistance } from '@/utils/locationUt
 
 interface PoojaCardProps {
   pooja: Pooja;
-  distance?: number;
 }
 
 export function PoojaCard({ pooja }: PoojaCardProps) {
   const [distance, setDistance] = useState<number | null>(null);
+  const [distanceType, setDistanceType] = useState<'driving' | 'haversine' | null>(null);
   const [userLat, setUserLat] = useState<number | null>(null);
   const [userLng, setUserLng] = useState<number | null>(null);
   const formattedDate = format(new Date(pooja.pooja_date), 'PPP p');
 
-  // ✅ 1. Get user's current location automatically
+  // ✅ 1. Get user's current location
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -35,10 +35,10 @@ export function PoojaCard({ pooja }: PoojaCardProps) {
     );
   }, []);
 
-  // ✅ 2. Compute distance once user location is known
+  // ✅ 2. Compute distance (Google API or Haversine fallback)
   useEffect(() => {
     const fetchDistance = async () => {
-      if (!userLat || !userLng) return; // wait for geolocation
+      if (!userLat || !userLng) return;
 
       let poojaLat = pooja.location_lat;
       let poojaLng = pooja.location_lng;
@@ -60,8 +60,17 @@ export function PoojaCard({ pooja }: PoojaCardProps) {
       }
 
       if (poojaLat && poojaLng) {
-        const dist = calculateDistance(userLat, userLng, poojaLat, poojaLng);
-        if (dist && dist < 20000) setDistance(dist);
+        // ✅ Fetch actual driving distance (or fallback to Haversine)
+        const dist = await calculateDistance(userLat, userLng, poojaLat, poojaLng);
+        if (dist && dist < 20000) {
+          setDistance(dist);
+          // detect type based on env key presence
+          if (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
+            setDistanceType('driving');
+          } else {
+            setDistanceType('haversine');
+          }
+        }
       }
     };
 
@@ -91,10 +100,20 @@ export function PoojaCard({ pooja }: PoojaCardProps) {
           <span>{pooja.location_address || 'Location not provided'}</span>
         </div>
 
-        {/* Distance (only when ready) */}
+        {/* ✅ Distance (with icon + dynamic label) */}
         {distance !== null && !isNaN(distance) && (
-          <div className="text-sm font-semibold text-blue-600">
-            {distance.toFixed(1)} km away
+          <div className="flex items-center gap-2 text-sm text-gray-700 font-medium">
+            {distanceType === 'driving' ? (
+              <>
+                <Route className="h-4 w-4 text-amber-600" />
+                <span>Driving distance: {distance.toFixed(1)} km</span>
+              </>
+            ) : (
+              <>
+                <Navigation className="h-4 w-4 text-amber-600" />
+                <span>Approx. {distance.toFixed(1)} km away</span>
+              </>
+            )}
           </div>
         )}
 
