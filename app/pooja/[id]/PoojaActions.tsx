@@ -11,17 +11,28 @@ export const PoojaActions = ({ pooja, toast }: any) => {
 
   const handleAddToCalendar = () => {
     const eventDate = new Date(pooja.pooja_date);
-    const endDate = new Date(eventDate.getTime() + 2 * 60 * 60 * 1000);
+    const endDate = new Date(eventDate.getTime() + 2 * 60 * 60 * 1000); // +2 hrs duration
 
+    // 1-day reminder alert (24 hours before start)
     const icsContent = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
+      'PRODID:-//SwamiyeNearMe//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
       'BEGIN:VEVENT',
+      `UID:${Date.now()}@swamiye-nearme.app`,
+      `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
       `DTSTART:${eventDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
       `DTEND:${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
       `SUMMARY:${pooja.title}`,
       `DESCRIPTION:${pooja.description}`,
       `LOCATION:${pooja.location_address}`,
+      'BEGIN:VALARM',
+      'TRIGGER:-P1D', // 1 day before event
+      'ACTION:DISPLAY',
+      'DESCRIPTION:Reminder - Your sacred pooja starts tomorrow 🙏',
+      'END:VALARM',
       'END:VEVENT',
       'END:VCALENDAR',
     ].join('\n');
@@ -38,7 +49,7 @@ export const PoojaActions = ({ pooja, toast }: any) => {
 
     toast({
       title: 'Calendar event created 📅',
-      description: 'Download the .ics file to add to your calendar',
+      description: 'An alert 1 day before the pooja will be set in your calendar',
     });
   };
 
