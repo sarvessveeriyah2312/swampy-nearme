@@ -16,23 +16,51 @@ export const useAdminDashboard = () => {
     upcoming: 0,
   });
 
+  // ✅ Redirect to login if not authenticated
   useEffect(() => {
     const isAuth = localStorage.getItem('admin-auth');
     if (!isAuth) router.push('/admin-login');
   }, [router]);
 
+  // ✅ On mount: auto-delete past poojas + fetch current list
   useEffect(() => {
-    fetchPoojas();
+    const cleanupOldPoojas = async () => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const { error } = await supabase
+        .from('poojas')
+        .delete()
+        .lt('pooja_date', today.toISOString()); // delete poojas before today
+
+      if (error) {
+        console.error('Error cleaning up past poojas:', error);
+      } else {
+        console.log('✅ Old poojas deleted successfully');
+      }
+    };
+
+    cleanupOldPoojas().then(fetchPoojas);
   }, []);
 
+  // ✅ Fetch poojas and compute stats
   const fetchPoojas = async () => {
-    const { data } = await supabase
+    setLoading(true);
+
+    const { data, error } = await supabase
       .from('poojas')
       .select('*')
       .order('created_at', { ascending: false });
 
+    if (error) {
+      console.error('Error fetching poojas:', error);
+      setLoading(false);
+      return;
+    }
+
     if (data) {
       setPoojas(data);
+
       const now = new Date();
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
@@ -45,9 +73,11 @@ export const useAdminDashboard = () => {
         upcoming: data.filter((p) => new Date(p.pooja_date) >= now).length,
       });
     }
+
     setLoading(false);
   };
 
+  // ✅ Manual delete for specific pooja
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this pooja?')) return;
 
@@ -65,6 +95,7 @@ export const useAdminDashboard = () => {
     }
   };
 
+  // ✅ Logout function
   const handleLogout = () => {
     localStorage.removeItem('admin-auth');
     toast({ title: 'Logged out', description: 'You have been logged out' });
