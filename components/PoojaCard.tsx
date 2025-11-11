@@ -19,7 +19,10 @@ export function PoojaCard({ pooja }: PoojaCardProps) {
   const [distanceType, setDistanceType] = useState<'driving' | 'haversine' | null>(null);
   const [userLat, setUserLat] = useState<number | null>(null);
   const [userLng, setUserLng] = useState<number | null>(null);
-  const formattedDate = format(new Date(pooja.pooja_date), 'PPP p');
+
+  const formattedDate = pooja.pooja_date
+    ? format(new Date(pooja.pooja_date), 'PPP p')
+    : 'Date not available';
 
   // ✅ 1. Get user's current location
   useEffect(() => {
@@ -61,16 +64,12 @@ export function PoojaCard({ pooja }: PoojaCardProps) {
       }
 
       if (poojaLat && poojaLng) {
-        // ✅ Fetch actual driving distance (or fallback to Haversine)
         const dist = await calculateDistance(userLat, userLng, poojaLat, poojaLng);
         if (dist && dist < 20000) {
           setDistance(dist);
-          // detect type based on env key presence
-          if (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
-            setDistanceType('driving');
-          } else {
-            setDistanceType('haversine');
-          }
+          setDistanceType(
+            process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? 'driving' : 'haversine'
+          );
         }
       }
     };
@@ -79,11 +78,11 @@ export function PoojaCard({ pooja }: PoojaCardProps) {
   }, [userLat, userLng, pooja]);
 
   return (
-    <Card className="hover:shadow-xl transition-all duration-300 border-2 border-amber-100 hover:border-amber-300">
+    <Card className="hover:shadow-xl transition-all duration-300 border-2 border-amber-100 hover:border-amber-300 rounded-2xl overflow-hidden">
       {/* Header */}
       <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50">
         <CardTitle className="text-xl text-amber-900 font-semibold">
-          {pooja.title}
+          {pooja.title || 'Untitled Pooja'}
         </CardTitle>
       </CardHeader>
 
@@ -101,7 +100,7 @@ export function PoojaCard({ pooja }: PoojaCardProps) {
           <span>{pooja.location_address || 'Location not provided'}</span>
         </div>
 
-        {/* ✅ Distance (with icon + dynamic label) */}
+        {/* ✅ Distance */}
         {distance !== null && !isNaN(distance) && (
           <div className="flex items-center gap-2 text-sm text-gray-700 font-medium">
             {distanceType === 'driving' ? (
@@ -123,13 +122,13 @@ export function PoojaCard({ pooja }: PoojaCardProps) {
           {pooja.description || 'No description provided.'}
         </p>
 
-        {/* View Button */}
-        <Link href={`/pooja/${pooja.id}`} className="block">
-          <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg">
-            <Eye className="mr-2 h-4 w-4" />
+        {/* ✅ Fixed View Button */}
+        <Button asChild className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg mt-4">
+          <Link href={`/pooja/${pooja.id}`}>
+            <Eye className="h-4 w-4 mr-2" />
             View Details
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </CardContent>
     </Card>
   );

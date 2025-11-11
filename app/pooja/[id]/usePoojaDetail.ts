@@ -12,27 +12,50 @@ export function usePoojaDetail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchPooja() {
-      const { data, error } = await supabase
-        .from('poojas')
-        .select('*')
-        .eq('id', params.id)
-        .maybeSingle();
+    const fetchPooja = async () => {
+      const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
-      if (data) {
-        setPooja(data);
-      } else {
+      if (!id) {
         toast({
-          title: 'Pooja not found',
-          description: 'The pooja you are looking for does not exist',
+          title: 'Invalid URL',
+          description: 'No Pooja ID provided in the URL.',
           variant: 'destructive',
         });
         router.push('/poojas');
+        return;
       }
-      setLoading(false);
-    }
 
-    if (params.id) fetchPooja();
+      const { data, error } = await supabase
+        .from('poojas')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error) {
+        toast({
+          title: 'Database Error',
+          description: error.message,
+          variant: 'destructive',
+        });
+        router.push('/poojas');
+        return;
+      }
+
+      if (!data) {
+        toast({
+          title: 'Pooja not found',
+          description: 'The pooja you are looking for does not exist.',
+          variant: 'destructive',
+        });
+        router.push('/poojas');
+        return;
+      }
+
+      setPooja(data);
+      setLoading(false);
+    };
+
+    fetchPooja();
   }, [params.id, router, toast]);
 
   return { pooja, loading };

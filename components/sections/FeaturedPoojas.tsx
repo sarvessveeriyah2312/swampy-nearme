@@ -64,7 +64,7 @@ export default function FeaturedPoojas({ poojas, loading }: FeaturedPoojasProps)
                 },
               }}
             >
-              {poojas.map((pooja, index) => (
+              {poojas.map((pooja) => (
                 <motion.div
                   key={pooja.id}
                   variants={{
@@ -73,34 +73,41 @@ export default function FeaturedPoojas({ poojas, loading }: FeaturedPoojasProps)
                   }}
                   whileHover={{ scale: 1.02 }}
                   transition={{ type: 'spring', stiffness: 100, damping: 15 }}
-                  className="relative group"
+                  className="relative group cursor-pointer"
                 >
                   {/* Glow behind each card */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-yellow-200/30 via-orange-100/20 to-transparent blur-2xl rounded-3xl opacity-0 group-hover:opacity-70 transition-opacity duration-500" />
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-tr from-yellow-200/30 via-orange-100/20 to-transparent blur-2xl rounded-3xl opacity-0 group-hover:opacity-70 transition-opacity duration-500 pointer-events-none"
+                    animate={{ opacity: [0.1, 0.25, 0.1] }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 6,
+                      ease: 'easeInOut',
+                    }}
+                  />
                   <PoojaCard pooja={pooja} />
                 </motion.div>
               ))}
             </motion.div>
 
-            {/* CTA */}
+            {/* ✅ CTA */}
             <motion.div
               className="text-center mt-16"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <Link href="/poojas">
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-amber-700 to-orange-700 hover:from-amber-800 hover:to-orange-800 text-white shadow-lg font-semibold transition-all duration-300 hover:shadow-2xl"
-                >
-                  View All Sacred Gatherings
-                </Button>
-              </Link>
+              <Button
+                asChild
+                size="lg"
+                className="bg-gradient-to-r from-amber-700 to-orange-700 hover:from-amber-800 hover:to-orange-800 text-white shadow-lg font-semibold transition-all duration-300 hover:shadow-2xl"
+              >
+                <Link href="/poojas">View All Sacred Gatherings</Link>
+              </Button>
             </motion.div>
           </>
         ) : (
-          /* Empty State */
+          /* ✅ Empty State */
           <motion.div
             className="text-center py-16 bg-white/60 rounded-2xl border-2 border-dashed border-amber-300 max-w-xl mx-auto"
             initial={{ opacity: 0, scale: 0.95 }}
@@ -113,11 +120,13 @@ export default function FeaturedPoojas({ poojas, loading }: FeaturedPoojasProps)
             <p className="text-gray-600 mb-4 font-medium">
               No poojas have been announced yet. Be the first to initiate a sacred gathering!
             </p>
-            <Link href="/announce">
-              <Button className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 shadow-lg font-semibold">
-                Announce First Pooja
-              </Button>
-            </Link>
+
+            <Button
+              asChild
+              className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 shadow-lg font-semibold"
+            >
+              <Link href="/announce">Announce First Pooja</Link>
+            </Button>
           </motion.div>
         )}
       </div>

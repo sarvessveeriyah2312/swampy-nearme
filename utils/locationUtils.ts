@@ -1,58 +1,61 @@
-// utils/locationUtils.ts
-
 /**
- * Get latitude and longitude from a full address using OpenStreetMap (Nominatim).
- * Includes fallback simplification and "Malaysia" context.
+ * Dynamically geocode an address using OpenStreetMap (Nominatim),
+ * with progressive simplification, normalization, and caching.
  */
+const geocodeCache: Record<string, { lat: number; lng: number }> = {};
+
 export async function getCoordinatesFromAddress(address: string) {
   try {
-    const query = `${address}, Malaysia`;
+    if (!address) return null;
 
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(query)}`,
-      {
+    // 🧹 Step 1: Normalize
+    let cleanAddress = address
+      .replace(/\s+/g, ' ')
+      .replace(/\bqueenstreet\b/i, 'Queen Street')
+      .replace(/\blittle india\b/i, 'George Town')
+      .replace(/\bmaha\b/i, 'Maha')
+      .replace(/\bmariamman\b/i, 'Mariamman')
+      .replace(/\btemple\b/i, 'Temple')
+      .trim();
+
+    const cacheKey = cleanAddress.toLowerCase();
+    if (geocodeCache[cacheKey]) {
+      return geocodeCache[cacheKey];
+    }
+
+    // 🧭 Step 2: Progressive Search Strategy
+    const candidates = [
+      `${cleanAddress}, Malaysia`,
+      `${cleanAddress}, Penang, Malaysia`,
+      cleanAddress.split(',').slice(-2).join(', ') + ', Malaysia',
+      cleanAddress.split(' ').slice(-3).join(' ') + ', Malaysia',
+    ];
+
+    for (const query of candidates) {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(
+        query
+      )}`;
+
+      const res = await fetch(url, {
         headers: {
           'User-Agent': 'SwamiyeNearMe/1.0 (contact@swamiyenearme.com)',
           'Accept-Language': 'en',
         },
+      });
+
+      const data = await res.json();
+
+      if (Array.isArray(data) && data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lng = parseFloat(data[0].lon);
+        geocodeCache[cacheKey] = { lat, lng };
+
+        console.log('✅ Dynamic geocode success for:', query, lat, lng);
+        return { lat, lng };
       }
-    );
-
-    const data = await res.json();
-
-    if (Array.isArray(data) && data.length > 0) {
-      const lat = parseFloat(data[0].lat);
-      const lng = parseFloat(data[0].lon);
-      return { lat, lng };
     }
 
-    // ✅ Fallback: simplified query (area + city only)
-    const shortQuery = address
-      .split(',')
-      .slice(-2)
-      .join(',')
-      .concat(', Malaysia');
-
-    const fallbackRes = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(shortQuery)}`,
-      {
-        headers: {
-          'User-Agent': 'SwamiyeNearMe/1.0 (contact@swamiyenearme.com)',
-          'Accept-Language': 'en',
-        },
-      }
-    );
-
-    const fallbackData = await fallbackRes.json();
-
-    if (Array.isArray(fallbackData) && fallbackData.length > 0) {
-      const lat = parseFloat(fallbackData[0].lat);
-      const lng = parseFloat(fallbackData[0].lon);
-      console.warn('Using fallback geocoding result for:', address);
-      return { lat, lng };
-    }
-
-    console.warn('No geocoding results for address:', address);
+    console.warn('❌ No geocoding results for:', address);
     return null;
   } catch (err) {
     console.error('Geocoding error:', err);
